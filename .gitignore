@@ -57,6 +57,12 @@ venv.bak/
 .env
 .env.local
 .env.*.local
+# Keep templated example env files tracked
+!.env.example
+!.env.oracle.example
+!backend/.env.example
+!frontend/.env.example
+!frontend/.env.production
 
 # React / Frontend
 frontend/node_modules/
@@ -77,6 +83,10 @@ frontend/.env.local
 frontend/.env.development.local
 frontend/.env.test.local
 frontend/.env.production.local
+
+# Oracle deploy artefacts (generated on the VM, never committed)
+certbot/
+backups/
 
 # Logs
 npm-debug.log*

@@ -28,7 +28,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Create necessary directories
-RUN mkdir -p /app/staticfiles /app/media
+RUN mkdir -p /app/staticfiles /app/media /app/db-data
 
 # Collect static files (for admin, DRF browsable API, etc.)
 RUN SECRET_KEY=build-only python manage.py collectstatic --noinput 2>/dev/null || true
@@ -39,6 +39,7 @@ RUN useradd --create-home --shell /bin/bash appuser
 # Set permissions BEFORE switching to appuser
 RUN chown -R appuser:appuser /app \
     && chmod -R 755 /app \
+    && chmod +x /app/docker-entrypoint.sh \
     && touch /app/db.sqlite3 \
     && chmod 666 /app/db.sqlite3
 
@@ -48,5 +49,7 @@ USER appuser
 # Expose port
 EXPOSE 8000
 
-# Entrypoint: Run migrations and start Gunicorn
-CMD ["sh", "-c", "python manage.py migrate --noinput && gunicorn core.wsgi:application --bind 0.0.0.0:8000 --workers 3 --threads 2 --timeout 300"]
+# Entrypoint script: collectstatic + migrate + gunicorn (with long timeout
+# for video uploads / FFmpeg calls). Env knobs documented at the top of
+# docker-entrypoint.sh.
+CMD ["./docker-entrypoint.sh"]

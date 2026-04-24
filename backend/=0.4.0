@@ -1,6 +1,0 @@
-Defaulting to user installation because normal site-packages is not writeable
-Requirement already satisfied: telethon in /home/pankajbind/.local/lib/python3.10/site-packages (1.42.0)
-Requirement already satisfied: cryptg in /home/pankajbind/.local/lib/python3.10/site-packages (0.5.2)
-Requirement already satisfied: rsa in /home/pankajbind/.local/lib/python3.10/site-packages (from telethon) (4.9.1)
-Requirement already satisfied: pyaes in /home/pankajbind/.local/lib/python3.10/site-packages (from telethon) (1.6.1)
-Requirement already satisfied: pyasn1>=0.1.3 in /home/pankajbind/.local/lib/python3.10/site-packages (from rsa->telethon) (0.6.2)
