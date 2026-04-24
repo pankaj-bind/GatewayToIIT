@@ -141,7 +141,7 @@ CORS_ALLOWED_ORIGINS = list(dict.fromkeys(_default_cors + _extra_cors))
 
 # Allow Vercel preview deployments (one unique hostname per PR).
 CORS_ALLOWED_ORIGIN_REGEXES = [
-    r'^https://gatewaytoiit.*\.vercel\.app$',
+    r'^https://safevideo.*\.vercel\.app$',
     r'^https://.*-pankaj-binds-projects\.vercel\.app$',
 ]
 
