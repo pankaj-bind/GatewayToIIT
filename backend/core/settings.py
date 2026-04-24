@@ -21,7 +21,14 @@ if not SECRET_KEY:
     else:
         raise ValueError('DJANGO_SECRET_KEY environment variable is required in production')
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = [h.strip() for h in os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',') if h.strip()]
+
+# Trust proxy headers set by nginx (X-Forwarded-Proto, X-Forwarded-Host).
+# Without this, Django redirects https->http when SECURE_SSL_REDIRECT is on
+# because it only sees the internal http:// nginx->gunicorn hop.
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = True
+USE_X_FORWARDED_PORT = True
 
 # =============================================================================
 # APPLICATION CONFIGURATION
@@ -84,10 +91,13 @@ if os.environ.get('DATABASE_URL'):
         'default': dj_database_url.config(default=os.environ.get('DATABASE_URL'))
     }
 else:
+    # SQLITE_PATH lets us point Django at a file in a mounted volume in
+    # production (so the DB survives container recreates). Defaults to the
+    # old BASE_DIR/db.sqlite3 for dev.
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
+            'NAME': os.environ.get('SQLITE_PATH', str(BASE_DIR / 'db.sqlite3')),
         }
     }
 
@@ -114,19 +124,30 @@ GOOGLE_DRIVE_FOLDER_ID = os.environ.get('GOOGLE_DRIVE_FOLDER_ID')
 # =============================================================================
 # CORS CONFIGURATION - Critical for Cookie-based Auth
 # =============================================================================
-CORS_ALLOWED_ORIGINS = [
+# Base dev origins. Production origins come from env (FRONTEND_ORIGIN / extras).
+_default_cors = [
     'http://localhost:5173',  # Vite dev server
     'http://127.0.0.1:5173',
     'http://localhost:3000',
     'http://localhost:5174',
     'http://127.0.0.1:5174',
-    'http://localhost',        # Docker frontend (port 80)
-    'http://127.0.0.1',        # Docker frontend (port 80)
+    'http://localhost',
+    'http://127.0.0.1',
     'http://localhost:80',
     'http://127.0.0.1:80',
 ]
+_extra_cors = [o.strip() for o in os.environ.get('CORS_ALLOWED_ORIGINS', '').split(',') if o.strip()]
+CORS_ALLOWED_ORIGINS = list(dict.fromkeys(_default_cors + _extra_cors))
+
+# Allow Vercel preview deployments (one unique hostname per PR).
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r'^https://gatewaytoiit.*\.vercel\.app$',
+    r'^https://.*-pankaj-binds-projects\.vercel\.app$',
+]
 
 CORS_ALLOW_CREDENTIALS = True  # Required for cookies to be sent cross-origin
+# Cache preflight for 24h so every POST doesn't eat a full OPTIONS RTT.
+CORS_PREFLIGHT_MAX_AGE = 86400
 
 # Expose headers needed for video Range streaming
 CORS_EXPOSE_HEADERS = [
@@ -136,8 +157,9 @@ CORS_EXPOSE_HEADERS = [
     'Content-Type',
 ]
 
-# CSRF Trusted Origins - Required for Login/Signup in Docker
-CSRF_TRUSTED_ORIGINS = [
+# CSRF Trusted Origins - Required for login/signup and cross-origin unsafe
+# methods. Adds any origins supplied via CSRF_TRUSTED_ORIGINS env (comma-sep).
+_default_csrf = [
     'http://localhost',
     'http://127.0.0.1',
     'http://localhost:80',
@@ -145,6 +167,8 @@ CSRF_TRUSTED_ORIGINS = [
     'http://localhost:5173',
     'http://127.0.0.1:5173',
 ]
+_extra_csrf = [o.strip() for o in os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',') if o.strip()]
+CSRF_TRUSTED_ORIGINS = list(dict.fromkeys(_default_csrf + _extra_csrf))
 
 CORS_ALLOW_HEADERS = [
     'accept',
@@ -220,8 +244,11 @@ AUTH_COOKIE_REFRESH = 'refresh_token'
 AUTH_COOKIE_SECURE = os.environ.get('AUTH_COOKIE_SECURE', str(not DEBUG)) == 'True'
 AUTH_COOKIE_HTTP_ONLY = True    # Prevents JavaScript access (XSS protection)
 AUTH_COOKIE_PATH = '/'
-AUTH_COOKIE_SAMESITE = 'Lax'    # CSRF protection while allowing top-level navigation
-AUTH_COOKIE_DOMAIN = None       # Set in production for subdomains
+# Cross-site deploy (Vercel frontend -> Oracle backend on a different domain)
+# requires SameSite=None. Browsers only honour SameSite=None when Secure=True,
+# which is already the case in production. Keep 'Lax' in dev for simplicity.
+AUTH_COOKIE_SAMESITE = os.environ.get('AUTH_COOKIE_SAMESITE', 'None' if not DEBUG else 'Lax')
+AUTH_COOKIE_DOMAIN = os.environ.get('AUTH_COOKIE_DOMAIN') or None
 AUTH_COOKIE_ACCESS_MAX_AGE = 60 * 15           # 15 minutes
 AUTH_COOKIE_REFRESH_MAX_AGE = 60 * 60 * 24 * 7  # 7 days
 
@@ -235,6 +262,13 @@ if not DEBUG:
     SECURE_SSL_REDIRECT = os.environ.get('SECURE_SSL_REDIRECT', 'True') == 'True'
     SESSION_COOKIE_SECURE = os.environ.get('SESSION_COOKIE_SECURE', 'True') == 'True'
     CSRF_COOKIE_SECURE = os.environ.get('CSRF_COOKIE_SECURE', 'True') == 'True'
+    # Cross-site cookies need SameSite=None, else the browser drops them.
+    SESSION_COOKIE_SAMESITE = os.environ.get('SESSION_COOKIE_SAMESITE', 'None')
+    CSRF_COOKIE_SAMESITE = os.environ.get('CSRF_COOKIE_SAMESITE', 'None')
+    # HSTS
+    SECURE_HSTS_SECONDS = int(os.environ.get('SECURE_HSTS_SECONDS', 31536000))
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
     # Content Security Policy
     SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
 

@@ -1,0 +1,22 @@
+# Keep shell scripts and Dockerfiles as LF regardless of platform.
+# Prevents "bad interpreter: No such file or directory" when Windows CRLF
+# endings sneak into containers.
+*.sh          text eol=lf
+Dockerfile*   text eol=lf
+*.dockerfile  text eol=lf
+
+# Other text files: auto, but default to LF.
+*             text=auto eol=lf
+
+# Binary files: never touched.
+*.png         binary
+*.jpg         binary
+*.jpeg        binary
+*.gif         binary
+*.ico         binary
+*.pdf         binary
+*.gz          binary
+*.sqlite3     binary
+*.mp4         binary
+*.mov         binary
+*.webm        binary

@@ -1,0 +1,50 @@
+name: Deploy to Oracle Cloud
+
+# Trigger on merge/push to main that touches backend-side files.
+# Frontend deploys are handled by Vercel automatically on the same push.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - 'nginx/**'
+      - 'docker-compose.oracle.yml'
+      - 'scripts/oracle-deploy.sh'
+      - 'scripts/sqlite-backup.sh'
+      - '.github/workflows/deploy-oracle.yml'
+  # Manual trigger from the Actions tab
+  workflow_dispatch:
+
+# Prevent two deploys racing each other if PRs land back-to-back.
+concurrency:
+  group: deploy-oracle
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          echo "${{ secrets.ORACLE_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          echo "${{ secrets.ORACLE_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Trigger deploy on VM
+        run: |
+          # The authorized_keys entry forces `bash ./scripts/oracle-deploy.sh`
+          # as the command, so whatever we pass is ignored.
+          ssh -o StrictHostKeyChecking=yes \
+              -o BatchMode=yes \
+              -o ConnectTimeout=15 \
+              ${{ secrets.ORACLE_USER }}@${{ secrets.ORACLE_HOST }}
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "Deploy result: ${{ job.status }}"
+          echo "Target: ${{ secrets.ORACLE_USER }}@${{ secrets.ORACLE_HOST }}"
