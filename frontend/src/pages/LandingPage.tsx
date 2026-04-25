@@ -5,7 +5,7 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Play, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
@@ -31,9 +31,11 @@ const LandingPage: React.FC = () => {
       {/* Minimal Header */}
       <header className="landing__header">
         <div className="landing__logo">
-          <div className="landing__logo-icon">
-            <Play size={16} fill="white" stroke="none" />
-          </div>
+          <img
+            src="/safevideo-icon.png"
+            alt="SafeVideo"
+            className="landing__logo-icon"
+          />
           <span className="landing__logo-text">SafeVideo</span>
         </div>
       </header>

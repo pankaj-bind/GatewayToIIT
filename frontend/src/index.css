@@ -432,11 +432,8 @@ button {
 .landing__logo-icon {
   width: 32px;
   height: 32px;
-  background: var(--primary-color);
   border-radius: var(--radius-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  object-fit: contain;
 }
 
 .landing__logo-text {
