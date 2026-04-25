@@ -304,10 +304,21 @@ const HomePage: React.FC = () => {
   // ── Category CRUD ──
   const handleCreateCategory = async (name: string) => {
     try {
-      await axiosInstance.post('/api/vault/categories/', { name });
+      const response = await axiosInstance.post('/api/vault/categories/', { name });
       await fetchCategories();
       setCategoryModal({ isOpen: false });
-      addToast('Category created', 'success');
+
+      const imported = response.data?.imported;
+      if (imported && (imported.orgs || imported.chapters || imported.videos || imported.pdfs)) {
+        const parts = [];
+        if (imported.orgs) parts.push(`${imported.orgs} org${imported.orgs > 1 ? 's' : ''}`);
+        if (imported.chapters) parts.push(`${imported.chapters} chapter${imported.chapters > 1 ? 's' : ''}`);
+        if (imported.videos) parts.push(`${imported.videos} video${imported.videos > 1 ? 's' : ''}`);
+        if (imported.pdfs) parts.push(`${imported.pdfs} PDF${imported.pdfs > 1 ? 's' : ''}`);
+        addToast(`Category created — imported ${parts.join(', ')} from Drive`, 'success');
+      } else {
+        addToast('Category created', 'success');
+      }
     } catch (error: any) {
       addToast(error.response?.data?.name?.[0] || 'Failed to create category', 'error');
     }
