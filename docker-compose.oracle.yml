@@ -42,6 +42,10 @@ services:
       CSRF_COOKIE_SAMESITE: "None"
       SECURE_SSL_REDIRECT: "True"
 
+      # Single-user lockdown
+      SIGNUP_ENABLED: ${SIGNUP_ENABLED:-False}
+      ALLOWED_LOGIN_EMAILS: ${ALLOWED_LOGIN_EMAILS:-}
+
       # Integrations
       GOOGLE_DRIVE_FOLDER_ID: ${GOOGLE_DRIVE_FOLDER_ID:-}
       TELEGRAM_API_ID: ${TELEGRAM_API_ID:-}

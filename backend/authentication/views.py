@@ -3,6 +3,7 @@ Authentication Views
 Thin controllers delegating to services/selectors
 All token operations use HttpOnly cookies for XSS prevention
 """
+import os
 from django.conf import settings
 from rest_framework import status
 from rest_framework.views import APIView
@@ -13,6 +14,20 @@ from .serializers import SignupSerializer, LoginSerializer, UserSerializer
 from .services import AuthService
 from .selectors import UserSelector
 from .exceptions import AuthenticationError
+
+
+def _signup_enabled() -> bool:
+    return os.environ.get('SIGNUP_ENABLED', 'False').lower() == 'true'
+
+
+def _email_allowed(email: str) -> bool:
+    """Single-user lockdown. If ALLOWED_LOGIN_EMAILS is set, only those emails
+    can log in. Empty / unset = no restriction (dev/local)."""
+    raw = os.environ.get('ALLOWED_LOGIN_EMAILS', '').strip()
+    if not raw:
+        return True
+    allowed = {e.strip().lower() for e in raw.split(',') if e.strip()}
+    return email.strip().lower() in allowed
 
 
 class CookieTokenMixin:
@@ -64,12 +79,25 @@ class SignupView(CookieTokenMixin, APIView):
     authentication_classes = []
 
     def post(self, request):
+        if not _signup_enabled():
+            return Response(
+                {'success': False, 'error': {'message': 'Signup is disabled.'}},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         serializer = SignupSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
+        email = serializer.validated_data['email']
+        if not _email_allowed(email):
+            return Response(
+                {'success': False, 'error': {'message': 'This email is not authorized.'}},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         # Delegate to service layer
         user = AuthService.create_user(
-            email=serializer.validated_data['email'],
+            email=email,
             username=serializer.validated_data['username'],
             password=serializer.validated_data['password'],
         )
@@ -101,9 +129,14 @@ class LoginView(CookieTokenMixin, APIView):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
+        email = serializer.validated_data['email']
+        if not _email_allowed(email):
+            # Same generic error as wrong-password to avoid email enumeration.
+            raise AuthenticationError('Invalid credentials')
+
         # Delegate authentication to service
         user = AuthService.authenticate_user(
-            email=serializer.validated_data['email'],
+            email=email,
             password=serializer.validated_data['password'],
         )
 
