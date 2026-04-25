@@ -31,21 +31,14 @@ log "Starting services..."
 docker compose -f "$COMPOSE_FILE" up -d --remove-orphans
 
 log "Waiting for backend to be up..."
-for _ in $(seq 1 30); do
-    if docker compose -f "$COMPOSE_FILE" exec -T backend \
-        python -c "import urllib.request,sys;urllib.request.urlopen('http://localhost:8000/api/auth/me/');" \
+# TCP probe inside the container -- gunicorn listens on :8000 once it's up.
+# This avoids HTTP-status quirks (401 on /api/auth/me/ is "healthy" but
+# urllib raises HTTPError, so a pure TCP check is simpler and faster.)
+for i in $(seq 1 30); do
+    if docker compose -f "$COMPOSE_FILE" exec -T backend python -c \
+        "import socket; s=socket.socket(); s.settimeout(2); s.connect(('localhost', 8000)); s.close()" \
         >/dev/null 2>&1; then
-        log "Backend responding."
-        break
-    fi
-    # /api/auth/me/ will return 401 even when healthy -- that's still a
-    # valid signal that gunicorn is up.
-    if docker compose -f "$COMPOSE_FILE" exec -T backend \
-        python -c "import urllib.request;import urllib.error;\
-try:urllib.request.urlopen('http://localhost:8000/api/auth/me/')\
-except urllib.error.HTTPError as e:exit(0 if e.code==401 else 1)" \
-        >/dev/null 2>&1; then
-        log "Backend responding (401 on /api/auth/me/ -- expected for unauthenticated check)."
+        log "Backend responding (after ${i} attempts)."
         break
     fi
     sleep 2
