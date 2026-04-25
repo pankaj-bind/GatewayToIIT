@@ -27,8 +27,6 @@ import {
   CheckCircle,
   Video,
   RefreshCw,
-  FileText,
-  Layers,
 } from 'lucide-react';
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -467,23 +465,18 @@ const HomePage: React.FC = () => {
                 <button className="home-search-clear" onClick={() => setSearchQuery('')}><X size={14} /></button>
               )}
             </div>
-            <button
-              onClick={handleSyncAll}
-              className="home-btn home-btn--icon"
+            <button 
+              onClick={handleSyncAll} 
+              className="home-btn" 
               disabled={isSyncing}
-              title={isSyncing ? 'Syncing…' : 'Sync with Google Drive'}
-              aria-label="Sync with Google Drive"
+              title="Sync all chapters with Google Drive"
             >
               <RefreshCw size={18} className={isSyncing ? 'spin-animation' : ''} />
+              <span>{isSyncing ? 'Syncing...' : 'Sync Drive'}</span>
             </button>
-            <button
-              onClick={() => setCategoryModal({ isOpen: true })}
-              className="home-btn home-btn--primary"
-              title="New category"
-              aria-label="New category"
-            >
+            <button onClick={() => setCategoryModal({ isOpen: true })} className="home-btn home-btn--primary">
               <Plus size={18} />
-              <span className="home-btn-label">New Category</span>
+              <span>New Category</span>
             </button>
           </div>
 
@@ -551,25 +544,17 @@ const HomePage: React.FC = () => {
                                     </div>
                                     <div className="org-card-info">
                                       <h4 className="org-card-name">{org.name}</h4>
-                                      <div className="org-card-stats">
-                                        <span className="org-stat" title={`${org.chapter_count ?? 0} chapter${(org.chapter_count ?? 0) === 1 ? '' : 's'}`}>
-                                          <Layers size={12} />
-                                          {org.chapter_count ?? 0}
-                                        </span>
+                                      <span className="org-card-videos">
+                                        <Video size={13} /> {org.chapter_count ?? 0} {(org.chapter_count ?? 0) === 1 ? 'chapter' : 'chapters'}
                                         {(org.video_count ?? 0) > 0 && (
-                                          <span className="org-stat" title={`${org.video_count} video${org.video_count === 1 ? '' : 's'}`}>
-                                            <Video size={12} />
-                                            {org.video_count}
-                                          </span>
+                                          <> · {org.video_count} video{(org.video_count ?? 0) !== 1 ? 's' : ''}</>
                                         )}
                                         {(org.pdf_count ?? 0) > 0 && (
-                                          <span className="org-stat" title={`${org.pdf_count} PDF${org.pdf_count === 1 ? '' : 's'}`}>
-                                            <FileText size={12} />
-                                            {org.pdf_count}
-                                          </span>
+                                          <> · {org.pdf_count} PDF{(org.pdf_count ?? 0) !== 1 ? 's' : ''}</>
                                         )}
-                                      </div>
+                                      </span>
                                     </div>
+                                    {/* Arrow removed for cleaner look, available on hover via CSS if needed, or just keep it simple */}
                                   </div>
                                   <div className="org-card-actions">
                                     <button onClick={(e) => { e.stopPropagation(); setOrgModal({ isOpen: true, categoryId: category.id, editId: org.id, initialName: org.name, initialLogo: org.logo_url || null }); }} className="org-mini-btn" title="Edit"><Edit2 size={13} /></button>
