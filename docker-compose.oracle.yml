@@ -27,8 +27,10 @@ services:
       DEBUG: "False"
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?DJANGO_SECRET_KEY is required}
       # DOMAIN is the API hostname (e.g. gatewaytoiit.duckdns.org). We also
-      # allow the raw IP so container healthchecks still work.
-      ALLOWED_HOSTS: ${DOMAIN},${PUBLIC_IP},backend,localhost,127.0.0.1
+      # allow the raw IP so container healthchecks still work, and the
+      # Vercel host so requests proxied through Vercel rewrites pass the
+      # Django ALLOWED_HOSTS check (Vercel forwards Host: <vercel-app>).
+      ALLOWED_HOSTS: ${DOMAIN},${PUBLIC_IP},safevideo.vercel.app,backend,localhost,127.0.0.1
       # Pinned Vercel origin + any extras. Preview deploys are matched via
       # CORS_ALLOWED_ORIGIN_REGEXES in settings.py.
       CORS_ALLOWED_ORIGINS: ${FRONTEND_ORIGIN:-https://gatewaytoiit.vercel.app}
