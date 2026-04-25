@@ -7,21 +7,13 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Sun, Moon, LogOut, LogIn, Calendar, LayoutDashboard, User } from 'lucide-react';
 
-// Minimal Play Logo - Clean geometric design
 const PlayLogo: React.FC<{ className?: string }> = ({ className }) => (
-  <svg
-    viewBox="0 0 32 32"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
+  <img
+    src="/safevideo-icon.png"
+    alt="SafeVideo"
     className={className}
     style={{ width: 28, height: 28 }}
-  >
-    <rect width="32" height="32" rx="8" fill="#3ea6ff" />
-    <path
-      d="M12 10L23 16L12 22V10Z"
-      fill="white"
-    />
-  </svg>
+  />
 );
 
 interface NavbarProps {
