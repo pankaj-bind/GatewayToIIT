@@ -295,6 +295,61 @@ class DriveService:
         except Exception:
             return False
 
+    def _list_subfolders(self, parent_id):
+        """List immediate subfolders of a given Drive folder ID."""
+        subfolders = []
+        page_token = None
+        while True:
+            query = (
+                f"'{parent_id}' in parents "
+                f"and mimeType='application/vnd.google-apps.folder' "
+                f"and trashed=false"
+            )
+            resp = self.service.files().list(
+                q=query,
+                spaces='drive',
+                fields='nextPageToken, files(id, name)',
+                pageSize=1000,
+                pageToken=page_token,
+            ).execute()
+            subfolders.extend(resp.get('files', []))
+            page_token = resp.get('nextPageToken')
+            if not page_token:
+                break
+        return subfolders
+
+    def walk_category_tree(self, category_name):
+        """Discover the org/chapter hierarchy for a category on Drive.
+
+        Looks for {GOOGLE_DRIVE_FOLDER_ID}/{category_name}/ and walks two
+        levels down (organizations, then chapters). Returns None if the
+        category folder itself is not found on Drive.
+        """
+        parent_folder_id = os.environ.get('GOOGLE_DRIVE_FOLDER_ID')
+        if not parent_folder_id:
+            return None
+
+        category_id = self.folder_exists_in_path(category_name)
+        if not category_id:
+            return None
+
+        organizations = []
+        for org in self._list_subfolders(category_id):
+            chapters = [
+                {'name': ch['name'], 'folder_id': ch['id']}
+                for ch in self._list_subfolders(org['id'])
+            ]
+            organizations.append({
+                'name': org['name'],
+                'folder_id': org['id'],
+                'chapters': chapters,
+            })
+
+        return {
+            'drive_folder_id': category_id,
+            'organizations': organizations,
+        }
+
     def folder_exists_in_path(self, folder_path):
         """Check whether a full folder path still exists on Drive.
 
