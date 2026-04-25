@@ -403,14 +403,23 @@ const HomePage: React.FC = () => {
       const response = await axiosInstance.post('/api/vault/sync-all/');
       await fetchCategories();
       
-      const { videos_synced, videos_deleted, pdfs_synced, pdfs_deleted, errors } = response.data;
-      
+      const {
+        videos_synced, videos_deleted, pdfs_synced, pdfs_deleted,
+        orgs_created = 0, chapters_created = 0, errors,
+      } = response.data;
+
       if (errors && errors.length > 0) {
         addToast(`Sync completed with ${errors.length} error(s)`, 'error');
       } else {
-        const changes = videos_synced + videos_deleted + pdfs_synced + pdfs_deleted;
-        if (changes > 0) {
-          addToast(`Synced: +${videos_synced + pdfs_synced} items, -${videos_deleted + pdfs_deleted} items`, 'success');
+        const parts = [];
+        if (orgs_created) parts.push(`+${orgs_created} org${orgs_created > 1 ? 's' : ''}`);
+        if (chapters_created) parts.push(`+${chapters_created} chapter${chapters_created > 1 ? 's' : ''}`);
+        if (videos_synced) parts.push(`+${videos_synced} video${videos_synced > 1 ? 's' : ''}`);
+        if (pdfs_synced) parts.push(`+${pdfs_synced} PDF${pdfs_synced > 1 ? 's' : ''}`);
+        const removed = videos_deleted + pdfs_deleted;
+        if (removed) parts.push(`-${removed} removed`);
+        if (parts.length) {
+          addToast(`Synced: ${parts.join(', ')}`, 'success');
         } else {
           addToast('Everything is up to date', 'info');
         }

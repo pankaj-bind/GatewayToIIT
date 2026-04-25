@@ -247,7 +247,34 @@ class SyncAllChaptersView(APIView):
             user = request.user
             drive_service = DriveService()
 
-            # Get all chapters for this user
+            # Phase 0 — Walk Drive tree for each Category and create any
+            # missing Organization / Chapter records before syncing content.
+            orgs_created = 0
+            chapters_created = 0
+            for category in Category.objects.filter(user=user):
+                try:
+                    tree = drive_service.walk_category_tree(category.name)
+                except Exception as e:
+                    logger.warning(f'Drive walk skipped for {category.name}: {e}')
+                    tree = None
+                if not tree:
+                    continue
+                for org_entry in tree.get('organizations', []):
+                    organization, org_was_created = Organization.objects.get_or_create(
+                        category=category,
+                        name=org_entry['name'],
+                    )
+                    if org_was_created:
+                        orgs_created += 1
+                    for ch_entry in org_entry.get('chapters', []):
+                        _, ch_was_created = Chapter.objects.get_or_create(
+                            organization=organization,
+                            name=ch_entry['name'],
+                        )
+                        if ch_was_created:
+                            chapters_created += 1
+
+            # Now sync content for every chapter (including newly-discovered ones)
             chapters = Chapter.objects.filter(
                 organization__category__user=user
             ).select_related('organization', 'organization__category')
@@ -286,6 +313,8 @@ class SyncAllChaptersView(APIView):
             return Response({
                 'message': 'Sync completed',
                 'chapters_processed': total_chapters,
+                'orgs_created': orgs_created,
+                'chapters_created': chapters_created,
                 'videos_synced': total_synced,
                 'videos_deleted': total_deleted,
                 'pdfs_synced': total_pdf_synced,
