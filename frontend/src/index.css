@@ -974,13 +974,12 @@ button {
 
 .home-search-input {
   width: 100%;
-  padding: 0.75rem 2.25rem 0.75rem 2.75rem;
+  padding: 0.6rem 2rem 0.6rem 2.5rem;
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
   background: var(--bg-surface);
   color: var(--text-primary);
-  font-size: 0.92rem;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  font-size: 0.85rem;
 }
 
 .home-search-input::placeholder {
@@ -990,7 +989,6 @@ button {
 .home-search-input:focus {
   outline: none;
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(62, 166, 255, 0.12);
 }
 
 .home-search-clear {
@@ -1012,40 +1010,21 @@ button {
 .home-btn {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 0.45rem;
-  padding: 0.7rem 1.15rem;
+  gap: 0.4rem;
+  padding: 0.6rem 1.1rem;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-subtle);
   background: var(--bg-surface);
   color: var(--text-primary);
   font-weight: 600;
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   cursor: pointer;
   white-space: nowrap;
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
 
 .home-btn:hover {
   background: var(--hover-bg);
-  border-color: var(--text-tertiary);
-}
-
-.home-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.home-btn--icon {
-  width: 42px;
-  height: 42px;
-  padding: 0;
-  flex-shrink: 0;
-  color: var(--text-secondary);
-}
-
-.home-btn--icon:hover {
-  color: var(--primary-color);
 }
 
 .home-btn--primary {
@@ -1061,23 +1040,6 @@ button {
 .home-btn--primary:hover {
   background: var(--primary-hover);
   border-color: var(--primary-hover);
-  color: #ffffff;
-  transform: translateY(-1px);
-}
-
-[data-theme='dark'] .home-btn--primary:hover {
-  color: #0f0f0f;
-}
-
-@media (max-width: 640px) {
-  .home-btn-label {
-    display: none;
-  }
-  .home-btn--primary {
-    width: 42px;
-    height: 42px;
-    padding: 0;
-  }
 }
 
 /* ── Empty / Loading ── */
@@ -1264,9 +1226,9 @@ button {
   position: relative;
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+  transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -1278,29 +1240,27 @@ button {
 
 .org-card:hover {
   border-color: var(--org-color, var(--primary-color));
-  transform: translateY(-3px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+  transform: translateY(-2px);
 }
 
 [data-theme='light'] .org-card:hover {
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
 .org-card-accent {
   height: 3px;
   background: var(--org-color, var(--primary-color));
-  transition: height 0.18s ease;
 }
 
 .org-card:hover .org-card-accent {
-  height: 5px;
+  height: 4px;
 }
 
 .org-card-top {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 1rem;
+  gap: 0.6rem;
+  padding: 0.85rem;
   flex: 1;
 }
 
@@ -1328,43 +1288,22 @@ button {
 }
 
 .org-card-name {
-  font-size: 0.95rem;
+  font-size: 0.88rem;
   font-weight: 600;
   color: var(--text-primary);
-  margin: 0 0 4px 0;
+  margin: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  letter-spacing: -0.01em;
 }
 
-.org-card-stats {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.org-stat {
+.org-card-videos {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
-  padding: 2px 7px;
-  border-radius: var(--radius-full);
-  background: var(--hover-bg);
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  font-variant-numeric: tabular-nums;
-  line-height: 1.4;
-}
-
-.org-stat svg {
+  gap: 4px;
+  font-size: 0.72rem;
   color: var(--text-tertiary);
-  flex-shrink: 0;
-}
-
-.org-card:hover .org-stat svg {
-  color: var(--org-color, var(--primary-color));
+  margin-top: 2px;
 }
 
 .org-card-actions {
