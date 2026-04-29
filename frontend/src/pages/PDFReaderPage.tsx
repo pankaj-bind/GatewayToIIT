@@ -559,12 +559,19 @@ const PDFReaderPage: React.FC = () => {
 
         if (!info.stream_url) throw new Error('No stream URL for PDF');
 
-        // Load PDF with pdf.js
+        // Load PDF with pdf.js — use ranged/progressive loading so large files
+        // don't hang waiting for the whole stream. disableAutoFetch lets us
+        // render the first pages immediately and only fetch ranges as the
+        // user scrolls. rangeChunkSize keeps each request small enough that
+        // slow Drive streams don't trip the proxy idle timeout.
         const loadingTask = pdfjsLib.getDocument({
           url: info.stream_url,
           withCredentials: true,
           cMapUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/cmaps/',
           cMapPacked: true,
+          disableAutoFetch: true,
+          disableStream: false,
+          rangeChunkSize: 524288, // 512 KB
         });
 
         const doc = await loadingTask.promise;

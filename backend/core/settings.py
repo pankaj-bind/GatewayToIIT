@@ -207,8 +207,8 @@ REST_FRAMEWORK = {
 # SIMPLE JWT CONFIGURATION - HttpOnly Cookie Strategy
 # =============================================================================
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=365),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
     'UPDATE_LAST_LOGIN': True,
@@ -249,8 +249,8 @@ AUTH_COOKIE_PATH = '/'
 # which is already the case in production. Keep 'Lax' in dev for simplicity.
 AUTH_COOKIE_SAMESITE = os.environ.get('AUTH_COOKIE_SAMESITE', 'None' if not DEBUG else 'Lax')
 AUTH_COOKIE_DOMAIN = os.environ.get('AUTH_COOKIE_DOMAIN') or None
-AUTH_COOKIE_ACCESS_MAX_AGE = 60 * 15           # 15 minutes
-AUTH_COOKIE_REFRESH_MAX_AGE = 60 * 60 * 24 * 7  # 7 days
+AUTH_COOKIE_ACCESS_MAX_AGE = 60 * 60 * 24            # 1 day
+AUTH_COOKIE_REFRESH_MAX_AGE = 60 * 60 * 24 * 365     # 1 year — keep user logged in until explicit logout
 
 # =============================================================================
 # SECURITY SETTINGS
